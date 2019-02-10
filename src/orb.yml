@@ -28,7 +28,7 @@ examples:
 commands:
   login:
     description: |
-      Docker login. Set $DOCKER_USER and $DOCKER_PASSWORD environment variables
+      Docker login. Set $DOCKER_LOGIN and $DOCKER_PASSWORD environment variables
     parameters:
       registry:
         description: Name of registry to use
@@ -37,7 +37,7 @@ commands:
       user:
         description: Docker user for login
         type: string
-        default: $DOCKER_USER
+        default: $DOCKER_LOGIN
       password:
         description: Docker password for login
         type: string
