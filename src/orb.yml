@@ -11,6 +11,10 @@ examples:
       version: 2.1
       orbs:
         docker: zachchai/docker@0.0.1
+      workflows:
+        build_and_push:
+          jobs:
+            - build_and_push
       jobs:
         build_and_push:
           executor: docker/default
@@ -20,22 +24,22 @@ examples:
             - docker/login
             - docker/build
             - docker/push
-      workflows:
-        build_and_push:
-          jobs:
-            - build_and_push
 
 commands:
   login:
-    description: Docker login
+    description: |
+      Docker login. Set $DOCKER_USER and $DOCKER_PASSWORD environment variables
     parameters:
       registry:
+        description: Name of registry to use
         type: string
         default: docker.io
       user:
+        description: Docker user for login
         type: string
         default: $DOCKER_USER
       password:
+        description: Docker password for login
         type: string
         default: $DOCKER_PASSWORD
     steps:
@@ -48,21 +52,27 @@ commands:
     description: Builds and Tags a Docker Image.
     parameters:
       registry:
+        description: Name of registry to use
         type: string
         default: docker.io
       image:
+        description: Name of image to create
         type: string
         default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
       tag:
+        description: Tag for created image
         type: string
         default: $CIRCLE_SHA1
       dockerfile:
+        description: Name of dockerfile to use
         type: string
         default: Dockerfile
       path:
+        description: Path to the directory containing your Dockerfile and build context
         type: string
         default: .
       extra_build_args:
+        description: Extra flags to pass to docker build
         type: string
         default: ''
     steps:
@@ -78,12 +88,15 @@ commands:
     description: Pulls a Docker image
     parameters:
       registry:
+        description: Name of registry to use
         type: string
         default: docker.io
       image:
+        description: Name of image to pull
         type: string
         default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
       tag:
+        description: Tag of image to pull
         type: string
         default: $CIRCLE_SHA1
     steps:
@@ -94,12 +107,15 @@ commands:
     description: Pushes a Docker image
     parameters:
       registry:
+        description: Name of registry to use
         type: string
         default: docker.io
       image:
+        description: Name of image to push
         type: string
         default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
       tag:
+        description: Tag of image to push
         type: string
         default: $CIRCLE_SHA1
     steps:
@@ -113,6 +129,7 @@ executors:
   default:
     parameters:
       tag:
+        description: Tag for docker image
         type: string
         default: stable-dind
     docker:
