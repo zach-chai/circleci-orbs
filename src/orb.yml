@@ -1,29 +1,76 @@
 version: 2.1
 
 description: |
-  Build and publish Docker images to container registries
+  Build and push Docker images to container registries
 
 examples:
-  build_and_push:
+  standard_build_and_push:
     description: |
       Build from Dockerfile, and push to registry
     usage:
       version: 2.1
       orbs:
-        docker: zachchai/docker@0.0.1
+        docker: zachchai/docker@0.1.0
       workflows:
         build_and_push:
           jobs:
-            - build_and_push
-      jobs:
-        build_and_push:
-          executor: docker/default
+            - build_push
+
+jobs:
+  build_push:
+    description: Build and optionally push Docker image
+    executor: default
+    parameters:
+      registry:
+        description: Name of registry to use
+        type: string
+        default: docker.io
+      image:
+        description: Name of image
+        type: string
+        default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
+      tag:
+        description: Tag of image
+        type: string
+        default: $CIRCLE_SHA1
+      dockerfile:
+        description: Name of dockerfile to use
+        type: string
+        default: Dockerfile
+      path:
+        description: Path to the directory containing your Dockerfile and build context
+        type: string
+        default: .
+      extra_build_args:
+        description: Extra flags to pass to docker build
+        type: string
+        default: ''
+      push:
+        description: Push image to registry
+        type: boolean
+        default: true
+    steps:
+      - checkout
+      - setup_remote_docker
+      - when:
+          condition: <<parameters.push>>
           steps:
-            - checkout
-            - setup_remote_docker
-            - docker/login
-            - docker/build
-            - docker/push
+            - login:
+                registry: << parameters.registry >>
+      - build:
+          registry: << parameters.registry >>
+          image: << parameters.image >>
+          tag: << parameters.tag >>
+          dockerfile: << parameters.dockerfile >>
+          path: << parameters.path >>
+          extra_build_args: << parameters.extra_build_args >>
+      - when:
+          condition: <<parameters.push>>
+          steps:
+            - push:
+                registry: << parameters.registry >>
+                image: << parameters.image >>
+                tag: << parameters.tag >>
 
 commands:
   login:
@@ -125,6 +172,7 @@ commands:
             if [[ $CIRCLE_NODE_INDEX == 0 ]]; then
               docker push << parameters.registry >>/<< parameters.image >>:<< parameters.tag >>
             fi
+
 executors:
   default:
     parameters:
