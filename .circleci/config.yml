@@ -9,10 +9,18 @@ workflows:
       - orb-tools/lint:
           name: lint
           lint-dir: src
+          filters:
+            tags:
+              only:
+                - /.*/
       - orb-tools/pack:
           name: pack-validate
           requires:
             - lint
+          filters:
+            tags:
+              only:
+                - /.*/
       - orb-tools/publish-dev:
           name: publish-dev
           orb-name: zachchai/docker
@@ -23,3 +31,22 @@ workflows:
             branches:
               only:
                 - master
+            tags:
+              ignore:
+                - /.*/
+      - orb-tools/publish:
+          name: publish
+          orb-ref: zachchai/docker@$CIRCLE_TAG
+          context: orb_publish
+          validate: false
+          attach-workspace: true
+          checkout: false
+          requires:
+            - pack-validate
+          filters:
+            tags:
+              only:
+                - /.*/
+            branches:
+              ignore:
+                - /.*/
