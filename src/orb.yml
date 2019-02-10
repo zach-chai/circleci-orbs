@@ -1,0 +1,119 @@
+version: 2.1
+
+description: |
+  Build and publish Docker images to container registries
+
+examples:
+  build_and_push:
+    description: |
+      Build from Dockerfile, and push to registry
+    usage:
+      version: 2.1
+      orbs:
+        docker: zachchai/docker@0.0.1
+      jobs:
+        build_and_push:
+          executor: docker/default
+          steps:
+            - checkout
+            - setup_remote_docker
+            - docker/login
+            - docker/build
+            - docker/push
+      workflows:
+        build_and_push:
+          jobs:
+            - build_and_push
+
+commands:
+  login:
+    description: Docker login
+    parameters:
+      registry:
+        type: string
+        default: docker.io
+      user:
+        type: string
+        default: $DOCKER_USER
+      password:
+        type: string
+        default: $DOCKER_PASSWORD
+    steps:
+      - run:
+          name: Docker login
+          command: |
+            echo << parameters.password >> | \
+            docker login --password-stdin -u << parameters.user >> << parameters.registry >>
+  build:
+    description: Builds and Tags a Docker Image.
+    parameters:
+      registry:
+        type: string
+        default: docker.io
+      image:
+        type: string
+        default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
+      tag:
+        type: string
+        default: $CIRCLE_SHA1
+      dockerfile:
+        type: string
+        default: Dockerfile
+      path:
+        type: string
+        default: .
+      extra_build_args:
+        type: string
+        default: ''
+    steps:
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build \
+              << parameters.extra_build_args >> \
+              -f << parameters.dockerfile >> \
+              -t << parameters.registry >>/<< parameters.image >>:<< parameters.tag >> \
+              << parameters.path >>
+  pull:
+    description: Pulls a Docker image
+    parameters:
+      registry:
+        type: string
+        default: docker.io
+      image:
+        type: string
+        default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
+      tag:
+        type: string
+        default: $CIRCLE_SHA1
+    steps:
+      - run:
+          name: Pull Docker Image
+          command: docker pull << parameters.registry >>/<< parameters.image >>:<< parameters.tag >>
+  push:
+    description: Pushes a Docker image
+    parameters:
+      registry:
+        type: string
+        default: docker.io
+      image:
+        type: string
+        default: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
+      tag:
+        type: string
+        default: $CIRCLE_SHA1
+    steps:
+      - run:
+          name: Push Docker image
+          command: |
+            if [[ $CIRCLE_NODE_INDEX == 0 ]]; then
+              docker push << parameters.registry >>/<< parameters.image >>:<< parameters.tag >>
+            fi
+executors:
+  default:
+    parameters:
+      tag:
+        type: string
+        default: stable-dind
+    docker:
+      - image: docker:<< parameters.tag >>
