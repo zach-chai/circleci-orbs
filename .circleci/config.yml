@@ -1,0 +1,21 @@
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@7.3.0
+
+workflows:
+  lint_validate_publish-dev:
+    jobs:
+      - orb-tools/lint:
+          name: lint
+          lint-dir: src
+      - orb-tools/publish-dev:
+          name: publish-dev
+          orb-name: zachchai/docker
+          orb-path: src/orb.yml
+          checkout: true
+          attach-workspace: false
+          validate: true
+          context: orb_publish
+          requires:
+            - lint
