@@ -179,6 +179,6 @@ executors:
       tag:
         description: Tag for docker image
         type: string
-        default: stable-dind
+        default: stable-git
     docker:
       - image: docker:<< parameters.tag >>
