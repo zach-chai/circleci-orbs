@@ -10,7 +10,7 @@ examples:
     usage:
       version: 2.1
       orbs:
-        docker: zachchai/docker@0.1.0
+        docker: zachchai/docker@0.1.1
       workflows:
         build_and_push:
           jobs:
@@ -179,6 +179,6 @@ executors:
       tag:
         description: Tag for docker image
         type: string
-        default: stable-dind
+        default: stable-git
     docker:
       - image: docker:<< parameters.tag >>
